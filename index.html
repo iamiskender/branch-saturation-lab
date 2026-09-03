@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Branch Saturation Lab</title>
+<meta name="description" content="An independent mechanism experiment on The Standard Reserve: what bounds the expansion flywheel, and what it costs to enter it early.">
+<meta property="og:title" content="Branch Saturation Lab">
+<meta property="og:description" content="Three findings on the expansion license auction. 900 runs. Every launch parameter cancels out.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9EDEF; --sheet:#F4F7F8; --rule:#BFD2DC; --rule-soft:#D6E3EA;
+  --margin:#A8443C; --ink:#16222A; --soft:#5D6E78; --green:#27604D; --amber:#8C5E14;
+  --gutter:5.5rem;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Spectral,Georgia,serif; font-weight:400;
+  font-size:17px; line-height:1.62;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+.sheet{
+  max-width:60rem; margin:0 auto; background:var(--sheet);
+  border-left:1px solid var(--rule); border-right:1px solid var(--rule);
+  min-height:100vh; position:relative;
+}
+.sheet::before{
+  content:""; position:absolute; top:0; bottom:0; left:var(--gutter);
+  width:1px; background:var(--margin); opacity:.55;
+}
+.row{padding:2.6rem var(--gutter) 2.6rem calc(var(--gutter) + 2rem); border-bottom:1px solid var(--rule-soft); position:relative}
+.row:last-child{border-bottom:none}
+.entry{position:absolute; left:0; width:var(--gutter); padding-right:1.05rem; text-align:right;
+  color:var(--margin); font-size:.86rem; letter-spacing:.02em; padding-top:.42rem; font-weight:500}
+h1{font-size:clamp(2.5rem,7vw,4.1rem); line-height:1.02; font-weight:600; letter-spacing:-.022em; margin:0 0 .7rem}
+h2{font-size:1.72rem; line-height:1.2; font-weight:600; letter-spacing:-.012em; margin:0 0 .55rem}
+h3{font-size:1.03rem; font-weight:600; margin:2rem 0 .5rem}
+p{margin:0 0 1rem; max-width:38em}
+.lede{font-size:1.16rem; color:var(--soft); max-width:34em}
+.fine{font-size:.9rem; color:var(--soft); line-height:1.55}
+em{font-style:italic}
+strong{font-weight:600}
+a{color:var(--green); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px}
+a:focus-visible,input:focus-visible{outline:2px solid var(--margin); outline-offset:3px}
+
+.masthead{padding-top:3.4rem; padding-bottom:2.2rem}
+.meta{display:flex; flex-wrap:wrap; gap:.4rem 1.6rem; font-size:.86rem; color:var(--soft); margin-top:1.4rem;
+  padding-top:.85rem; border-top:1px solid var(--rule)}
+
+.figure{margin:1.6rem 0 .5rem; background:#fff; border:1px solid var(--rule); padding:1.1rem 1.2rem .7rem}
+.figure svg{display:block; width:100%; height:auto}
+.cap{font-size:.86rem; color:var(--soft); margin:.7rem 0 0; max-width:44em}
+
+.dial{margin:1.5rem 0; padding:1.15rem 1.25rem; background:#fff; border:1px solid var(--rule)}
+.dial label{display:block; font-size:.92rem; margin-bottom:.15rem}
+.dial .val{font-weight:600; color:var(--green)}
+input[type=range]{width:100%; margin:.35rem 0 1rem; accent-color:var(--green); height:1.5rem}
+.dial > *:last-child{margin-bottom:0}
+
+.readout{display:flex; flex-wrap:wrap; gap:1.6rem 2.6rem; margin:1.3rem 0 0;
+  padding-top:1.1rem; border-top:1px solid var(--rule)}
+.readout div{min-width:7rem}
+.readout .n{font-size:1.95rem; font-weight:600; line-height:1.05; display:block; letter-spacing:-.01em}
+.readout .l{font-size:.86rem; color:var(--soft)}
+.green{color:var(--green)} .amber{color:var(--amber)} .red{color:var(--margin)}
+
+table{border-collapse:collapse; width:100%; font-size:.93rem; margin:1.2rem 0}
+th,td{text-align:left; padding:.5rem 1.5rem .5rem 0; border-bottom:1px solid var(--rule-soft);
+  vertical-align:top}
+th{font-weight:600; border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right; white-space:nowrap}
+th:last-child,td:last-child{padding-right:0}
+
+ul{margin:0 0 1rem; padding-left:1.1rem; max-width:38em}
+li{margin-bottom:.42rem}
+li::marker{color:var(--margin)}
+
+.busy{opacity:.42; transition:opacity .12s}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:720px){
+  :root{--gutter:2.6rem}
+  body{font-size:16px}
+  .row{padding:2rem 1.3rem 2rem calc(var(--gutter) + .6rem)}
+  .entry{font-size:.78rem; padding-right:.6rem}
+  .masthead{padding-top:2.4rem}
+}
+</style>
+</head>
+<body>
+<main class="sheet">
+
+<section class="row masthead">
+  <h1>Branch Saturation<br>Lab</h1>
+  <p class="lede">An independent mechanism experiment on The Standard Reserve. Three questions about the expansion license auction, run against the whitepaper and answered without any of the launch parameters it redacts.</p>
+  <div class="meta">
+    <span>Whitepaper v0.1</span>
+    <span>900 runs</span>
+    <span>Seed fixed and adjustable</span>
+    <span>Not affiliated with the protocol</span>
+  </div>
+</section>
+
+<section class="row">
+  <span class="entry">1</span>
+  <h2>No charter can buy its second branch with what it earns</h2>
+  <p>Every one of the 1,000 Founding Charters opens with exactly one branch. Tokens are minted only at a withdrawal, so at genesis every wallet is empty. Retiring a branch is the only withdrawal, and retiring one branch out of one liquidates the whole balance and burns the charter.</p>
+  <p>That closes both internal funding routes at once. The second branch has to be paid for with $STANDARD bought on the open market, which means ETH from outside the earning loop. This is arithmetic from sections 3, 6, 7 and 9, not a simulation result.</p>
+  <p>What the simulation adds is the size of the effect. Move the share of charters willing to buy on the open market and the whole system resolves to one line.</p>
+
+  <div class="dial">
+    <label>Share of charters that buy $STANDARD on the open market <span class="val" id="v-ext">100%</span></label>
+    <input type="range" id="s-ext" min="0" max="100" step="5" value="100" aria-label="Share of charters buying on the open market">
+    <div class="readout">
+      <div><span class="n green" id="o-n">10,000</span><span class="l">branches at rest</span></div>
+      <div><span class="n" id="o-stuck">0</span><span class="l">charters left on one branch</span></div>
+      <div><span class="n" id="o-fill">100%</span><span class="l">of the 10,000 ceiling</span></div>
+    </div>
+  </div>
+  <p class="fine">Across all 900 runs the resting branch count tracks 1,000 + 9,000 &times; participation, with a maximum deviation of 2.3%. The deviation is never a charter escaping one branch. It comes from charters already holding two or more, which can self-finance once the auction is sitting at its floor.</p>
+</section>
+
+<section class="row">
+  <span class="entry">2</span>
+  <h2>The burn engine has a computable expiry date</h2>
+  <p>The whitepaper calls expansion the protocol's largest supply sink, and it is. It also has a hard ceiling nobody has priced: 9,000 expandable slots against a supply of 100 licenses a day. Ninety days, and the engine is done.</p>
+  <p>Burn peaks near three times daily issuance in the first week, then decays as each new branch dilutes the yield that sets the license floor. At saturation it reaches exactly zero, in 900 runs out of 900.</p>
+
+  <div class="dial">
+    <label>Open market participation <span class="val" id="v-ext2">100%</span></label>
+    <input type="range" id="s-ext2" min="10" max="100" step="5" value="100" aria-label="Open market participation">
+    <label>New charters sold per day at auction <span class="val" id="v-cpd">0</span></label>
+    <input type="range" id="s-cpd" min="0" max="25" step="1" value="0" aria-label="Charters sold per day">
+    <div class="figure" id="fig-burn"></div>
+    <p class="cap">Daily license burn as a multiple of daily issuance. Both axes are ratios, so the base issuance rate and the policy multiplier cancel and never enter the result.</p>
+    <div class="readout">
+      <div><span class="n amber" id="o-peak">3.35&times;</span><span class="l">peak burn vs issuance</span></div>
+      <div><span class="n" id="o-sat">90</span><span class="l">days to saturation</span></div>
+      <div><span class="n" id="o-tot">72</span><span class="l">days of issuance burned, total</span></div>
+    </div>
+  </div>
+  <p>Charter auctions are the only thing that restarts the engine, and they restart it faintly. At twenty-five new charters a day the burn settles near a tenth of daily issuance and is still falling, against a peak above three times. Raise the cadence and see for yourself.</p>
+</section>
+
+<section class="row">
+  <span class="entry">3</span>
+  <h2>Two identical branches, a hundredfold difference in what they cost</h2>
+  <p>Section 8 lets each day open at twice the previous close, and describes the result as roughly a hundredfold move in a week. That is accurate. What it does not say is what the week costs the people buying inside it.</p>
+  <p>A license bought on the third or fifth day takes over two hundred days of branch yield to repay. The same license, granting the same branch, bought near saturation repays in two. Nothing about the asset differs. Only the day.</p>
+
+  <div class="dial">
+    <label>Assumed buyer payback horizon <span class="val" id="v-h">30 days</span></label>
+    <input type="range" id="s-h" min="10" max="60" step="5" value="30" aria-label="Buyer payback horizon">
+    <div class="figure" id="fig-pb"></div>
+    <p class="cap">Days of branch yield needed to repay one license, by the day it was bought. The spike is the opening escalation finding its ceiling.</p>
+    <div class="readout">
+      <div><span class="n red" id="o-worst">228</span><span class="l">worst payback, days</span></div>
+      <div><span class="n green" id="o-best">2</span><span class="l">best payback, days</span></div>
+      <div><span class="n" id="o-spread">114&times;</span><span class="l">spread</span></div>
+    </div>
+  </div>
+  <p class="fine">This is the one finding whose magnitude depends on behaviour rather than structure. At the full participation this panel shows, the spread runs from about 51&times; at a ten day horizon to about 226&times; at sixty. Across all 900 runs, which include thinner participation, the median is 52&times; and the floor is 8&times;. The existence of the effect does not depend on any of that. The escalation rule that produces it is in section 8.</p>
+</section>
+
+<section class="row">
+  <span class="entry">4</span>
+  <h2>Where each finding held, and where it did not</h2>
+  <p>900 runs across five payback horizons, three horizon spreads, four participation levels, three resolution fee ceilings and five seeds. Reporting the misses matters more than reporting the hits.</p>
+  <table>
+    <thead><tr><th>Finding</th><th class="num">Held</th><th class="num">Weakened</th><th>Where it weakens</th></tr></thead>
+    <tbody>
+      <tr><td>Bootstrap is closed</td><td class="num">900/900</td><td class="num">225/900</td><td>Deviation above 1% at participation of 50% and under, never above 2.3%</td></tr>
+      <tr><td>Burn reaches zero</td><td class="num">900/900</td><td class="num">0/900</td><td>No run kept a non-zero burn after saturation</td></tr>
+      <tr><td>Timing spread above 10&times;</td><td class="num">882/900</td><td class="num">18/900</td><td>All 18 sit in one corner: a ten day horizon at 10% participation</td></tr>
+    </tbody>
+  </table>
+  <p>Saturation timing is linear in participation and did not vary by seed: 11 days at 10% participation, 23 at 25%, 47 at 50%, 90 at 100%.</p>
+</section>
+
+<section class="row">
+  <span class="entry">5</span>
+  <h2>What is measured, assumed, and left out</h2>
+  <h3>Why the redacted parameters do not matter</h3>
+  <p>The license floor is defined in section 7 as roughly two days of one branch's yield, and one branch's yield is daily issuance divided by branch count. Both sides carry the same base rate and policy multiplier, so the ratio of daily burn to daily issuance reduces to 200k/N, where k is how far above the floor the auction clears. Findings 1 and 2 are stated entirely in that ratio. No redacted value enters them.</p>
+  <h3>Assumptions, all adjustable in the code</h3>
+  <ul>
+    <li>Resolution fee floor 5%, ceiling 50%, saturating at 20% weekly exit pressure. The ceiling was swept from 30% to 70% with no change to any finding.</li>
+    <li>Buyer willingness to pay is a payback horizon drawn from a normal distribution, mean adjustable above, standard deviation swept from 5 to 25 days.</li>
+    <li>The continuous Dutch descent is approximated by uniform clearing at the price where cumulative demand meets the daily supply.</li>
+  </ul>
+  <h3>Not modelled</h3>
+  <ul>
+    <li>Any price for $STANDARD. Everything is denominated in tokens and in days of yield.</li>
+    <li>The contraction vault, net flow regimes, and the policy multiplier. Findings 1 and 2 are invariant to the multiplier by construction; finding 3 would move with it.</li>
+    <li>Secondary charter transfers, which section 12 leaves for later.</li>
+    <li>Dormancy revocation, which returns branches to the pool of the living and would slightly extend saturation.</li>
+  </ul>
+  <p class="fine">Built from whitepaper v0.1 while the protocol is pre-launch. There is no token, no NFT, and no chain data to check any of this against yet, which is exactly why it is worth writing the model down now rather than after.</p>
+</section>
+
+</main>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------- model
+// Direct port of model.py. Daily issuance is normalised to 1.0, so every
+// output is a ratio and the redacted launch parameters cancel.
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function normals(rng,n,mean,sd){const o=new Float64Array(n);for(let i=0;i<n;i+=2){const u=Math.max(rng(),1e-12),v=rng(),r=Math.sqrt(-2*Math.log(u));o[i]=mean+sd*r*Math.cos(2*Math.PI*v);if(i+1<n)o[i+1]=mean+sd*r*Math.sin(2*Math.PI*v)}return o}
+
+const BASE={charters0:1000,branchesMax:10,licensesPerDay:100,perCharterCap:3,openMultiple:2,floorDays:2,
+  feeFloor:.05,feeCeiling:.50,feeSat:.20,horizonMean:30,horizonSd:12,externalShare:1,externalCap:3,
+  chartersPerDay:0,days:180,seed:7};
+
+function simulate(opt){
+  const p=Object.assign({},BASE,opt), rng=mulberry32(p.seed>>>0);
+  let C=p.charters0, cap=C*p.branchesMax;
+  let j=new Int32Array(C).fill(1), B=new Float64Array(C), wallet=new Float64Array(C);
+  let H=normals(rng,C,p.horizonMean,p.horizonSd); for(let i=0;i<C;i++) H[i]=Math.max(H[i],2);
+  let ext=new Uint8Array(C); for(let i=0;i<C;i++) ext[i]=rng()<p.externalShare?1:0;
+  let order=Array.from({length:C},(_,i)=>i).sort((a,b)=>H[b]-H[a]);
+  let pLast=0, mints=[], out=[];
+  const take=()=>new Int32Array(C);
+
+  for(let day=0;day<p.days;day++){
+    let N=0; for(let i=0;i<C;i++) N+=j[i];
+    const y=1/N, floor=p.floorDays*y;
+    for(let i=0;i<C;i++) B[i]+=j[i]*y;
+
+    let w7=0; for(let t=Math.max(0,mints.length-7);t<mints.length;t++) w7+=mints[t];
+    let held=0; for(let i=0;i<C;i++) held+=B[i];
+    const pressure=w7/Math.max(held+w7,1e-12), x=Math.min(1,pressure/p.feeSat);
+    const fee=p.feeFloor+(p.feeCeiling-p.feeFloor)*x*x;
+
+    const pStart=p.openMultiple*(pLast>0?pLast:floor);
+    const room=new Int32Array(C);
+    for(let i=0;i<C;i++) room[i]=Math.min(p.branchesMax-j[i],p.perCharterCap);
+
+    function demand(price,fill){
+      let tot=0;
+      for(let i=0;i<C;i++){
+        const t0=fill?0:0; if(fill) fill[i]=0;
+        if(room[i]<=0||H[i]*y<price) continue;
+        let afford=Math.floor(wallet[i]/price);
+        if(ext[i]) afford=Math.min(afford+p.externalCap,99);
+        if(j[i]>=2){
+          const gained=Math.floor((B[i]/j[i])*(1-fee)/price);
+          if(gained>=2) afford=Math.max(afford,gained);
+        }
+        const g=Math.min(room[i],afford);
+        if(g>0){tot+=g; if(fill) fill[i]=g}
+      }
+      return tot;
+    }
+
+    let lo=floor, hi=Math.max(pStart,floor*1.000001), clear;
+    if(demand(hi,null)>=p.licensesPerDay) clear=hi;
+    else if(demand(lo,null)<=p.licensesPerDay) clear=lo;
+    else{for(let k=0;k<34;k++){const m=.5*(lo+hi); if(demand(m,null)>=p.licensesPerDay) lo=m; else hi=m} clear=lo}
+
+    const tk=take(); demand(clear,tk);
+    let sum=0; for(let i=0;i<C;i++) sum+=tk[i];
+    if(sum>p.licensesPerDay){
+      let rem=p.licensesPerDay;
+      for(const i of order){ if(rem<=0){tk[i]=0; continue} const g=Math.min(tk[i],rem); tk[i]=g; rem-=g }
+    }
+
+    let burned=0, minted=0, retired=0, redis=0, sold=0;
+    for(const i of order){
+      if(tk[i]<=0) continue;
+      const cost=tk[i]*clear;
+      if(wallet[i]<cost && !ext[i] && j[i]>=2){
+        const gross=B[i]/j[i], net=gross*(1-fee);
+        B[i]-=gross; j[i]-=1; wallet[i]+=net; minted+=net;
+        burned+=.5*(gross-net); redis+=.5*(gross-net); retired++;
+      }
+      if(wallet[i]>=cost) wallet[i]-=cost;
+      else if(!ext[i]){ tk[i]=0; continue }
+      j[i]+=tk[i]; sold+=tk[i]; burned+=cost;
+      if(j[i]>p.branchesMax) j[i]=p.branchesMax;
+    }
+    if(redis>0){ let tn=0; for(let i=0;i<C;i++) tn+=j[i]; if(tn>0) for(let i=0;i<C;i++) B[i]+=redis*j[i]/tn }
+    mints.push(minted);
+
+    if(p.chartersPerDay>0){
+      const add=p.chartersPerDay, nj=new Int32Array(C+add), nB=new Float64Array(C+add),
+            nW=new Float64Array(C+add), nH=new Float64Array(C+add), nE=new Uint8Array(C+add);
+      nj.set(j); nB.set(B); nW.set(wallet); nH.set(H); nE.set(ext);
+      const hs=normals(rng,add,p.horizonMean,p.horizonSd);
+      for(let k=0;k<add;k++){ nj[C+k]=1; nH[C+k]=Math.max(hs[k],2); nE[C+k]=rng()<p.externalShare?1:0 }
+      j=nj;B=nB;wallet=nW;H=nH;ext=nE;C+=add;cap=C*p.branchesMax;
+      order=Array.from({length:C},(_,i)=>i).sort((a,b)=>H[b]-H[a]);
+    }
+    if(sold>0) pLast=clear;
+
+    let Nf=0; for(let i=0;i<C;i++) Nf+=j[i];
+    let ones=0; for(let i=0;i<C;i++) if(j[i]===1) ones++;
+    out.push({day,N:Nf,cap,fill:Nf/cap,clear,k:clear/floor,sold,retired,burn:burned,ones});
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- charts
+const C_INK="#16222A",C_SOFT="#5D6E78",C_RULE="#D6E3EA",C_GREEN="#27604D",C_AMBER="#8C5E14",C_RED="#A8443C";
+function chart(el,series,opt){
+  const narrow=window.innerWidth<720;
+  const W=narrow?430:760, Hh=narrow?300:310, ml=narrow?42:54, mr=14, mt=14, mb=narrow?42:46;
+  const fs=narrow?13:12;
+  const xs=opt.xs, xmax=Math.max(...xs,1);
+  let ymax=0; series.forEach(s=>s.v.forEach(v=>{if(v>ymax)ymax=v}));
+  ymax=ymax<=0?1:ymax*1.12;
+  const X=v=>ml+(W-ml-mr)*(v/xmax), Y=v=>mt+(Hh-mt-mb)*(1-v/ymax);
+  let g="";
+  for(let i=0;i<=4;i++){
+    const v=ymax*i/4, y=Y(v);
+    g+=`<line x1="${ml}" y1="${y.toFixed(1)}" x2="${W-mr}" y2="${y.toFixed(1)}" stroke="${C_RULE}" stroke-width="1"/>`;
+    g+=`<text x="${ml-8}" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="${fs}" fill="${C_SOFT}">${opt.fy(v)}</text>`;
+  }
+  const ticks=opt.ticks||[0,.25,.5,.75,1];
+  ticks.forEach(t=>{const v=xmax*t,x=X(v);
+    g+=`<text x="${x.toFixed(1)}" y="${Hh-24}" text-anchor="middle" font-size="${fs}" fill="${C_SOFT}">${Math.round(v)}</text>`});
+  g+=`<text x="${(ml+(W-ml-mr)/2).toFixed(0)}" y="${Hh-4}" text-anchor="middle" font-size="${fs}" fill="${C_SOFT}">${opt.xlabel}</text>`;
+  series.forEach(s=>{
+    let d="";
+    s.v.forEach((v,i)=>{d+=(i?"L":"M")+X(xs[i]).toFixed(1)+" "+Y(v).toFixed(1)});
+    g+=`<path d="${d}" fill="none" stroke="${s.c}" stroke-width="2" stroke-linejoin="round"/>`;
+  });
+  if(opt.mark!=null&&opt.mark>=0){
+    const x=X(opt.mark);
+    g+=`<line x1="${x.toFixed(1)}" y1="${mt}" x2="${x.toFixed(1)}" y2="${Hh-mb}" stroke="${C_RED}" stroke-width="1" stroke-dasharray="3 3"/>`;
+  }
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${opt.alt}">${g}</svg>`;
+}
+const fmt=n=>n.toLocaleString("en-US");
+
+// ---------------------------------------------------------------- wiring
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+function busy(on){document.querySelectorAll(".figure,.readout").forEach(e=>e.classList.toggle("busy",on))}
+
+const $=id=>document.getElementById(id);
+
+// panel 1
+function panel1(){
+  const ext=+$("s-ext").value/100;
+  $("v-ext").textContent=Math.round(ext*100)+"%";
+  const r=simulate({externalShare:ext,days:140});
+  const last=r[r.length-1];
+  $("o-n").textContent=fmt(last.N);
+  $("o-stuck").textContent=fmt(last.ones);
+  $("o-fill").textContent=Math.round(last.fill*100)+"%";
+}
+
+// panel 2
+function panel2(){
+  const ext=+$("s-ext2").value/100, cpd=+$("s-cpd").value;
+  $("v-ext2").textContent=Math.round(ext*100)+"%";
+  $("v-cpd").textContent=cpd;
+  const r=simulate({externalShare:ext,chartersPerDay:cpd,days:180});
+  const burn=r.map(x=>x.burn), xs=r.map(x=>x.day);
+  chart($("fig-burn"),[{v:burn,c:C_AMBER}],
+    {xs,fy:v=>v.toFixed(1)+"\u00D7",xlabel:"day",alt:"Daily license burn as a multiple of daily issuance, decaying to zero at saturation"});
+  const peak=Math.max(...burn);
+  let sat=-1; for(let i=r.length-1;i>=0;i--) if(r[i].sold>0){sat=r[i].day;break}
+  $("o-peak").textContent=peak.toFixed(2)+"\u00D7";
+  $("o-sat").textContent=sat<0?"never":(cpd>0&&sat>=179?"open":sat);
+  $("o-tot").textContent=Math.round(burn.reduce((a,b)=>a+b,0));
+}
+
+// panel 3
+function panel3(){
+  const hm=+$("s-h").value;
+  $("v-h").textContent=hm+" days";
+  const r=simulate({externalShare:1,horizonMean:hm,days:180});
+  const N=r.map(x=>x.N), Nend=N[N.length-1];
+  const days=[],pb=[];
+  for(const row of r){
+    if(row.sold<=0) continue;
+    let acc=0,got=null;
+    for(let t=row.day;t<N.length;t++){acc+=1/N[t]; if(acc>=row.clear){got=t-row.day;break}}
+    // past the horizon the branch count is at rest, so the tail is exact, not censored
+    if(got==null) got=(N.length-row.day)+Math.ceil((row.clear-acc)*Nend);
+    days.push(row.day); pb.push(got);
+  }
+  chart($("fig-pb"),[{v:pb,c:C_GREEN}],
+    {xs:days,fy:v=>Math.round(v),xlabel:"day the license was bought",
+     mark:days[pb.indexOf(Math.max(...pb))],alt:"Payback period by purchase day, spiking early then falling toward two days"});
+  const worst=Math.max(...pb), best=Math.max(Math.min(...pb),1);
+  $("o-worst").textContent=worst;
+  $("o-best").textContent=Math.min(...pb);
+  $("o-spread").textContent=Math.round(worst/best)+"\u00D7";
+}
+
+function boot(){
+  busy(true);
+  requestAnimationFrame(()=>{panel1();panel2();panel3();busy(false)});
+}
+const d1=debounce(()=>{busy(true);requestAnimationFrame(()=>{panel1();busy(false)})},90);
+const d2=debounce(()=>{busy(true);requestAnimationFrame(()=>{panel2();busy(false)})},90);
+const d3=debounce(()=>{busy(true);requestAnimationFrame(()=>{panel3();busy(false)})},90);
+$("s-ext").addEventListener("input",()=>{$("v-ext").textContent=$("s-ext").value+"%";d1()});
+$("s-ext2").addEventListener("input",()=>{$("v-ext2").textContent=$("s-ext2").value+"%";d2()});
+$("s-cpd").addEventListener("input",()=>{$("v-cpd").textContent=$("s-cpd").value;d2()});
+$("s-h").addEventListener("input",()=>{$("v-h").textContent=$("s-h").value+" days";d3()});
+boot();
+let wasNarrow=window.innerWidth<720;
+window.addEventListener("resize",debounce(()=>{const n=window.innerWidth<720;if(n!==wasNarrow){wasNarrow=n;panel2();panel3()}},200));
+</script>
+</body>
+</html>
